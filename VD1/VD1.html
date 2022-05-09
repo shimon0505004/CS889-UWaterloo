@@ -42,8 +42,10 @@
         color: red;
     }
 </style>
+
 </head>
 <body>
+
 
 <h1>CS889 - Spring 2022, University of Waterloo</h1>
 <h2>VD1: Hello, D3: Arefin Shimon, Shaikh Shawon (20942174)</h2>
@@ -56,22 +58,104 @@
 <div id="Visualization" class="tabcontent">
     <span onclick="this.parentElement.style.display='none'" class="topright">&times</span>
     <h3>VD1: Hello, D3</h3>
-    <p>
-        <!-- Add a svg shape -->
-        <svg id="dataviz_area" height=200 width=450></svg>
 
-        <!-- Load d3.js -->
-        <script src="https://d3js.org/d3.v4.js"></script>
-        <script>
-            var svg = d3.select("#dataviz_area")
-            svg.append("circle")
-            .attr("cx", 2).attr("cy", 2).attr("r", 40).style("fill", "blue");
-            svg.append("circle")
-            .attr("cx", 140).attr("cy", 70).attr("r", 40).style("fill", "red");
-            svg.append("circle")
-            .attr("cx", 300).attr("cy", 100).attr("r", 40).style("fill", "green");
-        </script>
-    </p>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+
+    <script>
+        d3.csv("income_evaluation.csv", function(data) {
+            //Filter Data
+            var filteredData = data.filter(function(d){
+                if(d["native_country"]== "Canada" 
+                    && d["sex"]== "Male"){
+                    return d;
+                }
+            });
+
+            // Variables
+            var body = d3.select('body')
+                var margin = { top: 50, right: 50, bottom: 50, left: 150 }
+                var h = 1000 - margin.top - margin.bottom
+                var w = 1000 - margin.left - margin.right
+                var formatPercent = d3.format('.2%')
+                // Scales
+            var colorScale = d3.scale.category20()
+            var xScale = d3.scale.linear()
+                .domain([0,100])
+                .range([0,w])
+            var yScale = d3.scale.linear()
+                .domain([0,17])
+                .range([h,0])
+                // SVG
+                var svg = body.append('svg')
+                    .attr('height',h + margin.top + margin.bottom)
+                    .attr('width',w + margin.left + margin.right)
+                .append('g')
+                    .attr('transform','translate(' + margin.left + ',' + margin.top + ')')
+                // X-axis
+                var xAxis = d3.svg.axis()
+                .scale(xScale)
+                .ticks(25)
+                .orient('bottom')
+            // Y-axis
+                var yAxis = d3.svg.axis()
+                .scale(yScale)
+                .ticks(10)
+                .orient('left')
+            // Circles
+            var circles = svg.selectAll('circle')
+                .data(filteredData)
+                .enter()
+                .append('circle')
+                .attr('cx',function (d) { return xScale(d.age) })
+                .attr('cy',function (d) { return yScale(d.education_num) })
+                .attr('r',function (d) { return (d.hours_per_week/2) })
+                .attr('stroke','black')
+                .attr('stroke-width',1)
+                .attr('fill',function (d,i) { return colorScale(i) })
+                .on('mouseover', function () {
+                    d3.select(this)
+                    .transition()
+                    .duration(500)
+                    .attr('r',20)
+                    .attr('stroke-width',3)
+                })
+                .on('mouseout', function () {
+                    d3.select(this)
+                    .transition()
+                    .duration(500)
+                    .attr('r',10)
+                    .attr('stroke-width',1)
+                })
+                .append('title') // Tooltip
+                .text(function (d) { return 'Occupation : '+ d.occupation +
+                                    '\n Education : ' + d.education +
+                                    '\n Race : ' + d.race })
+            // X-axis
+            svg.append('g')
+                .attr('class','axis')
+                .attr('transform', 'translate(0,' + h + ')')
+                .call(xAxis)
+                .append('text') // X-axis Label
+                .attr('class','label')
+                .attr('y',-20)
+                .attr('x',w)
+                .attr('dy','.71em')
+                .style('text-anchor','end')
+                .text('Age')
+            // Y-axis
+            svg.append('g')
+                .attr('class', 'axis')
+                .call(yAxis)
+                .append('text') // y-axis Label
+                .attr('class','label')
+                .attr('transform','rotate(-90)')
+                .attr('x',0)
+                .attr('y',5)
+                .attr('dy','.71em')
+                .style('text-anchor','end')
+                .text('Education Level Number')
+        });
+    </script>
 </div>
 
 <div id="Readme" class="tabcontent">
