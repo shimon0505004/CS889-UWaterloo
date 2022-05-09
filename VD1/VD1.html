@@ -72,60 +72,80 @@
             });
 
             // Variables
-            var body = d3.select('#Visualization')
-            var margin = { top: 50, right: 50, bottom: 50, left: 150 }
-            var h = 1000 - margin.top - margin.bottom
-            var w = 1000 - margin.left - margin.right
+            var visualizationBody = d3.select('#Visualization')
+            var margin = { top: 50, right: 50, bottom: 50, left: 50 }
+            var h = 750 - margin.top - margin.bottom
+            var w = 750 - margin.left - margin.right
+            var gap = 50
             // Scales
             var colorScale = d3.scale.category20()
             var xScale = d3.scale.linear()
                 .domain([0,100])
                 .range([0,w])
-            var yScale = d3.scale.linear()
+            var yScale1 = d3.scale.linear()
                 .domain([0,17])
                 .range([h,0])
             // SVG
-            var svg1 = body.append('svg')
-                .attr('height',h + margin.top + margin.bottom)
-                .attr('width',w + margin.left + margin.right)
+            var svg = visualizationBody.append('svg')
+                        .attr('id','mainsvg')
+                        .attr('height',h + margin.top + margin.bottom)
+                        .attr('width',2*(w + margin.left + margin.right)+gap)
+
+            var svg1 = d3.select('svg#mainsvg')
+                .append('svg')
                 .append('g')
                 .attr('transform','translate(' + margin.left + ',' + margin.top + ')')
+                .attr('id',"svg1")
+                .attr('height',h + margin.top + margin.bottom)
+                .attr('width',w + margin.left + margin.right)
+
+
+            var svg2 = d3.select('svg#mainsvg')
+                .append('svg')
+                .append('g')
+                .attr('transform','translate(' + (w+gap+margin.left+ margin.right) + ',' + margin.top + ')')
+                .attr('id',"svg2")                
+                .attr('height',h + margin.top + margin.bottom)
+                .attr('width',w + margin.left + margin.right)
+    
+
             // X-axis
             var xAxis = d3.svg.axis()
             .scale(xScale)
             .ticks(25)
             .orient('bottom')
             // Y-axis
-            var yAxis = d3.svg.axis()
-            .scale(yScale)
+            var yAxis1 = d3.svg.axis()
+            .scale(yScale1)
             .ticks(10)
             .orient('left')
     
             // Circles
-            var circles = svg1.selectAll('circle')
+            var circles1 = svg1.selectAll('empty')
                 .data(filteredData)
                 .enter()
                 .append('circle')
                 .attr('cx',function (d) { return xScale(d.age) })
-                .attr('cy',function (d) { return yScale(d.education_num) })
+                .attr('cy',function (d) { return yScale1(d.education_num) })
                 .attr('r',function (d) { return (d.hours_per_week/2) })
+                .attr("class", function(d,i) { return "pt" + i; })
                 .attr('stroke','black')
                 .attr('stroke-width',1)
                 .attr('fill',function (d,i) { return colorScale(i) })
-                .on('mouseover', function () {
-                    d3.select(this)
+                .on('mouseover', function (d,i) {
+                    d3.selectAll('circle.pt' + i)
                     .transition()
                     .duration(500)
                     .attr('stroke-width',3)
                 })
-                .on('mouseout', function () {
-                    d3.select(this)
+                .on('mouseout', function (d,i) {
+                    d3.selectAll('circle.pt' + i)
                     .transition()
                     .duration(500)
                     .attr('stroke-width',1)
                 })
                 .append('title') // Tooltip
-                .text(function (d) { return 'Occupation : '+ d.occupation +
+                .text(function (d, i) { return 'Occupation : '+ d.occupation +
                                     '\n Education : ' + d.education +
                                     '\n Race : ' + d.race +
                                     '\n Working Hours Per Week : ' + d.hours_per_week
@@ -145,7 +165,7 @@
             // Y-axis
             svg1.append('g')
                 .attr('class', 'axis')
-                .call(yAxis)
+                .call(yAxis1)
                 .append('text') // y-axis Label
                 .attr('class','label')
                 .attr('transform','rotate(-90)')
@@ -154,6 +174,76 @@
                 .attr('dy','.71em')
                 .style('text-anchor','end')
                 .text('Education Level Number')
+
+            
+
+            // Y-axis
+            var yScale2 = d3.scale.linear()
+                .domain([0,80])
+                .range([h,0])
+            var yAxis2 = d3.svg.axis()
+                .scale(yScale2)
+                .ticks(10)
+                .orient('left')    
+
+            
+            // Circles
+            var circles2 = svg2.selectAll('circle')
+                .data(filteredData)
+                .enter()
+                .append('circle')
+                .attr('cx',function (d) { return xScale(d.age) })
+                .attr('cy',function (d) { return yScale2(d.hours_per_week) })
+                .attr('r',function (d) { return (d.fnlwgt/10000) })
+                .attr("class", function(d,i) { return "pt" + i; })
+                .attr('stroke','black')
+                .attr('stroke-width',1)
+                .attr('fill',function (d,i) { return colorScale(i) })
+                .on('mouseover', function (d,i) {
+                    d3.select(this)
+                    .transition()
+                    .duration(500)
+                    .attr('stroke-width',3)
+                })
+                .on('mouseout', function (d,i) {
+                    d3.select(this)
+                    .transition()
+                    .duration(500)
+                    .attr('stroke-width',1)
+                })
+                .append('title') // Tooltip
+                .text(function (d) { return 'Occupation : '+ d.occupation +
+                                    '\n Education : ' + d.education +
+                                    '\n Race : ' + d.race +
+                                    '\n Final Weight : ' + d.fnlwgt
+                                }) 
+
+            // X-axis
+            svg2.append('g')
+                .attr('class','axis')
+                .attr('transform', 'translate(0,' + h + ')')
+                .call(xAxis)
+                .append('text') // X-axis Label
+                .attr('class','label')
+                .attr('y',-20)
+                .attr('x',w)
+                .attr('dy','.71em')
+                .style('text-anchor','end')
+                .text('Age')
+            // Y-axis
+            svg2.append('g')
+                .attr('class', 'axis')
+                .call(yAxis2)
+                .append('text') // y-axis Label
+                .attr('class','label')
+                .attr('transform','rotate(-90)')
+                .attr('x',0)
+                .attr('y',5)
+                .attr('dy','.71em')
+                .style('text-anchor','end')
+                .text('Working Hours Per Week')
+
+                
         });
     </script>
 </div>
