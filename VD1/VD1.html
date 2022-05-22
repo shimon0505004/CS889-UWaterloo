@@ -59,13 +59,28 @@
     <span onclick="this.parentElement.style.display='none'" class="topright">&times</span>
     <h3>VD1: Hello, D3</h3>
 
+    <p>
+        Using the following visualizations, we represent information about Single Male Canadians earning less than 50K per year (never married / divorced / Seperated) 
+        to get an idea about their education level and work-life balance. 
+        
+        <br><br>
+        For the first visualization, We plotted Age against Educational level to plot different categories (profession & family status) of Male Canadians mentioned above in 
+        a scatterplot. The circle corresponding to each group has a radius proportional to that groups working hours per week. X axis represents the Male Canadian Age and Y axis
+        corresponds to education level.
+        <br><br>
+        For the Second Scatterplot visualization, We plotted Age against Working hours per week to plot different categories (profession & family status) of Male Canadians mentioned above in
+        First scatterplot. The circle corresponding to each group represents the number of people in that category. X axis represents the Male Canadian Age and Y axis
+        corresponds to working hours per week.
+    </p>
+
     <script>
         d3.csv("income_evaluation.csv", function(data) {
             //Filter Data
             var filteredData = data.filter(function(d){
                 if(d["native_country"]== "Canada" 
                     && d["sex"]== "Male"
-                    && (d["marital_status"]== "Never-married" || d["marital_status"]== "Divorced" || d["marital_status"]== "Separated")                    
+                    && (d["marital_status"]== "Never-married" || d["marital_status"]== "Divorced" || d["marital_status"]== "Separated")
+                    && (d["income"]== "<=50K")                    
                     ){
                     return d;
                 }
@@ -73,14 +88,14 @@
 
             // Variables
             var visualizationBody = d3.select('#Visualization')
-            var margin = { top: 50, right: 50, bottom: 50, left: 50 }
-            var h = 750 - margin.top - margin.bottom
-            var w = 750 - margin.left - margin.right
+            var margin = { top: 50, right: 50, bottom: 50, left: 200 }
+            var h = 500 - margin.top - margin.bottom
+            var w = 800 - margin.left - margin.right
             var gap = 50
             // Scales
             var colorScale = d3.scale.category20()
             var xScale = d3.scale.linear()
-                .domain([0,100])
+                .domain([0,85])
                 .range([0,w])
             var yScale1 = d3.scale.linear()
                 .domain([0,17])
@@ -88,8 +103,8 @@
             // SVG
             var svg = visualizationBody.append('svg')
                         .attr('id','mainsvg')
-                        .attr('height',h + margin.top + margin.bottom)
-                        .attr('width',2*(w + margin.left + margin.right)+gap)
+                        .attr('height',2*(h + margin.left + margin.right)+gap)
+                        .attr('width',w + margin.left + margin.right)
 
             var svg1 = d3.select('svg#mainsvg')
                 .append('svg')
@@ -103,7 +118,7 @@
             var svg2 = d3.select('svg#mainsvg')
                 .append('svg')
                 .append('g')
-                .attr('transform','translate(' + (w+gap+margin.left+ margin.right) + ',' + margin.top + ')')
+                .attr('transform','translate(' + margin.left + ',' + (margin.top + h + margin.bottom + gap ) + ')')
                 .attr('id',"svg2")                
                 .attr('height',h + margin.top + margin.bottom)
                 .attr('width',w + margin.left + margin.right)
@@ -117,7 +132,7 @@
             // Y-axis
             var yAxis1 = d3.svg.axis()
             .scale(yScale1)
-            .ticks(10)
+            .ticks(20)
             .orient('left')
     
             // Circles
@@ -136,19 +151,25 @@
                     d3.selectAll('circle.pt' + i)
                     .transition()
                     .duration(500)
-                    .attr('stroke-width',3)
+                    .attr('stroke-width',5)
+
                 })
                 .on('mouseout', function (d,i) {
                     d3.selectAll('circle.pt' + i)
                     .transition()
                     .duration(500)
                     .attr('stroke-width',1)
+
                 })
                 .append('title') // Tooltip
-                .text(function (d, i) { return 'Occupation : '+ d.occupation +
+                .text(function (d, i) { return 'Country : '+ d.native_country +
+                                    '\nOccupation : '+ d.occupation +
                                     '\n Education : ' + d.education +
                                     '\n Race : ' + d.race +
-                                    '\n Working Hours Per Week : ' + d.hours_per_week
+                                    '\n final weight : ' + d.fnlwgt +
+                                    '\n Capital Gain : ' + d.capital_gain +
+                                    '\n Capital Loss : ' + d.capital_loss +
+                                    '\n Income : ' + d.income
                                 })
             // X-axis
             svg1.append('g')
@@ -161,7 +182,7 @@
                 .attr('x',w)
                 .attr('dy','.71em')
                 .style('text-anchor','end')
-                .text('Age')
+                .text('Male Canadian Age')
             // Y-axis
             svg1.append('g')
                 .attr('class', 'axis')
@@ -173,7 +194,7 @@
                 .attr('y',5)
                 .attr('dy','.71em')
                 .style('text-anchor','end')
-                .text('Education Level Number')
+                .text('Education Level')
 
             
 
@@ -200,22 +221,28 @@
                 .attr('stroke-width',1)
                 .attr('fill',function (d,i) { return colorScale(i) })
                 .on('mouseover', function (d,i) {
-                    d3.select(this)
-                    .transition()
-                    .duration(500)
-                    .attr('stroke-width',3)
+                    var sel = d3.selectAll('circle.pt' + i)
+                        .transition()
+                        .duration(500)
+                        .attr('stroke-width',5)
+                    
                 })
                 .on('mouseout', function (d,i) {
-                    d3.select(this)
+                    d3.selectAll('circle.pt' + i)
                     .transition()
                     .duration(500)
                     .attr('stroke-width',1)
+
                 })
                 .append('title') // Tooltip
-                .text(function (d) { return 'Occupation : '+ d.occupation +
+                .text(function (d) { return 'Country : '+ d.native_country +
+                                    '\n Occupation : '+ d.occupation +
                                     '\n Education : ' + d.education +
                                     '\n Race : ' + d.race +
-                                    '\n Final Weight : ' + d.fnlwgt
+                                    '\n final weight : ' + d.fnlwgt +
+                                    '\n Capital Gain : ' + d.capital_gain +
+                                    '\n Capital Loss : ' + d.capital_loss
+                                    '\n Income : ' + d.income
                                 }) 
 
             // X-axis
@@ -229,7 +256,7 @@
                 .attr('x',w)
                 .attr('dy','.71em')
                 .style('text-anchor','end')
-                .text('Age')
+                .text('Male Canadian Age')
             // Y-axis
             svg2.append('g')
                 .attr('class', 'axis')
@@ -246,6 +273,12 @@
                 
         });
     </script>
+
+    <p>
+    From the plots we see that the highest working hours among single male canadians earning less than 50K CAD do not have education beyond college level; and Most Single Canadians 
+    earning less than 50K per year with highest level of beyond bachelors are between 25 to 30 years.         
+    </p>
+
 </div>
 
 <div id="Readme" class="tabcontent">
@@ -284,6 +317,18 @@
                 <td>www.shawonarefin.com</td>
             </tr>
         </table>
+    </p>
+    <p>
+        <h4>Disclaimer</h4>
+        <p>
+            Used the following resources for inspiration. <br>
+
+            1) <a href="http://bl.ocks.org/kbroman/ded6a0784706a109c3a5">Linking two D3-based plots</a>                             <br>
+            2) <a href="https://d3-graph-gallery.com/graph/barplot_basic.html">Basic Barplot in D3</a>                              <br>
+            3) <a href="https://d3-graph-gallery.com/graph/barplot_stacked_basicWide.html">Basic stacked Barplot in D3</a>          <br>
+            4) <a href="https://riptutorial.com/d3-js/example/18426/loading-data-from-csv-files">Loading Data from CSV file</a>     <br>
+            5) <a href="https://d3-graph-gallery.com/graph/basic_datamanipulation.html">Data Filtering in CSV</a>     <br>
+        </p>
     </p>
 </div>
 

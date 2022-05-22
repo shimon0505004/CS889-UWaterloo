@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>VD1: Hello, D3</title>
+<style>
+    body{font-family: Arial;}
+
+    .tab{
+        overflow: hidden;
+        border: 1px solid #ccc;
+        background-color: #f1f1f1;
+    }
+
+    /*Style the buttons inside the tab*/
+    .tab button{
+        background-color: inherit;
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+        font-size: 17px;
+    }
+
+    .tab button:hover{
+        background-color: #ddd;
+    }
+
+    .tab button:active{
+        background-color: #ccc;
+    }
+
+    .tabcontent{
+        display: none;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-top: none;
+    }
+
+    .topright:hover{
+        color: red;
+    }
+</style>
+<script src="https://d3js.org/d3.v4.js"></script>
+</head>
+<body>
+
+
+<h1>CS889 - Spring 2022, University of Waterloo</h1>
+<h2>VD1: Hello, D3: Arefin Shimon, Shaikh Shawon (20942174)</h2>
+
+<div class="tab">
+    <button class="tablinks" onclick="openTab(event, 'Visualization')" id="defaultOpen">Visualization</button>
+    <button class="tablinks" onclick="openTab(event, 'Readme')">Readme</button>
+</div>
+
+<div id="Visualization" class="tabcontent">
+    <span onclick="this.parentElement.style.display='none'" class="topright">&times</span>
+    <h3>VD1: Hello, D3</h3>
+
+    <p>
+        Using the following visualizations, we represent information about Single Male Canadians earning less than 50K per year (never married / divorced / Seperated) 
+        to get an idea about their education level and work-life balance. 
+        
+        <br><br>
+        For the first visualization, We plotted Age against Educational level to plot different categories (profession & family status) of Male Canadians mentioned above in 
+        a scatterplot. The circle corresponding to each group has a radius proportional to that groups working hours per week. X axis represents the Male Canadian Age and Y axis
+        corresponds to education level.
+        <br><br>
+        For the Second Barplot visualization, We plotted Age against Working hours per week to plot different categories (profession & family status) of Male Canadians mentioned above in
+        First scatterplot. The circle corresponding to each group represents the number of people in that category. X axis represents the Male Canadian Age and Y axis
+        corresponds to working hours per week.
+    </p>
+
+    <script>
+        d3.csv("income_evaluation.csv", function(data) {
+
+            var allEducationLabels = d3.map(data,function(d,i){
+                return d.education_num + ':' + d.education 
+            }).keys()
+            const educationLabelMap = new Map(
+                allEducationLabels.map(obj =>{
+                    var items = obj.split(':')
+                    return [parseInt(items[0]),items[1]];
+                }),
+            );
+            
+            var allAgeLabels = d3.map(data,function(d,i){
+                return parseInt(d.age)
+            }).keys().map(Number)
+
+            
+            //Filter Data
+            var filteredData = data.filter(function(d){
+                if(d["native_country"]== "Canada" 
+                    && d["sex"]== "Male"
+                    && (d["marital_status"]== "Never-married" || d["marital_status"]== "Divorced" || d["marital_status"]== "Separated")
+                    && (d["income"]== "<=50K")                    
+                    ){
+                    return d;
+                }
+            });
+
+            // Variables
+            var visualizationBody = d3.select('#Visualization')
+            var margin = { top: 50, right: 50, bottom: 50, left: 200 }
+            var h = 1000 - margin.top - margin.bottom
+            var w = 1000 - margin.left - margin.right
+            var gap = 50
+            // Scales
+            var colorScale = d3.scaleOrdinal(d3.schemeCategory20)
+            var xScale1 = d3.scaleLinear()
+                .domain(
+                    [d3.min(allAgeLabels)-10
+                    ,d3.max(allAgeLabels)+10])
+                .range([0,w])
+            var yScale1 = d3.scaleLinear()
+                .domain([0,17])
+                .range([h,0])
+            // SVG
+            var svg = visualizationBody.append('svg')
+                        .attr('id','mainsvg')
+                        .attr('height',2*(h + margin.top + margin.bottom)+gap)
+                        .attr('width',w + margin.left + margin.right)
+
+            var svg1 = d3.select('svg#mainsvg')
+                .append('svg')
+                .append('g')
+                .attr('transform','translate(' + margin.left + ',' + margin.top + ')')
+                .attr('id',"svg1")
+                .attr('height',h + margin.top + margin.bottom)
+                .attr('width',w + margin.left + margin.right)
+
+
+            var svg2 = d3.select('svg#mainsvg')
+                .append('svg')
+                .append('g')
+                .attr('transform','translate(' + margin.left + ',' + (margin.top + h + margin.bottom + gap ) + ')')
+                .attr('id',"svg2")                
+                .attr('height',h + margin.top + margin.bottom)
+                .attr('width',w + margin.left + margin.right)
+    
+
+            // X-axis
+            var xAxis1 = d3.axisBottom(xScale1)
+                .ticks(25)
+            // Y-axis
+            var yAxis1 = d3.axisLeft(yScale1)
+                .ticks(20)
+                .tickFormat(function(d,i){
+                    return educationLabelMap.get(parseInt(d))
+                })            
+    
+            // Circles
+            var circles1 = svg1.selectAll('empty')
+                .data(filteredData)
+                .enter()
+                .append('circle')
+                .attr('cx',function (d) { return xScale1(d.age) })
+                .attr('cy',function (d) { return yScale1(d.education_num) })
+                .attr('r',function (d) { return (d.hours_per_week/2) })
+                .attr("class", function(d,i) { return "pt" + i; })
+                .attr('stroke','black')
+                .attr('stroke-width',1)
+                .attr('fill',function (d,i) { return colorScale(i) })
+                .on('mouseover', function (d,i) {
+                    d3.selectAll('circle.pt' + i)
+                    .transition()
+                    .duration(500)
+                    .attr('stroke-width',5)
+
+                    var sel = d3.select('rect.pt' + i)
+                    .transition()
+                    .duration(500)
+                    .attr('stroke-width',5)
+
+                })
+                .on('mouseout', function (d,i) {
+                    d3.selectAll('circle.pt' + i)
+                    .transition()
+                    .duration(500)
+                    .attr('stroke-width',1)
+
+                    var sel = d3.select('rect.pt' + i)
+                    .transition()
+                    .duration(500)
+                    .attr('stroke-width',1)
+
+                })
+                .append('title') // Tooltip
+                .text(function (d, i) { return 'Country : '+ d.native_country +
+                                    '\nOccupation : '+ d.occupation +
+                                    '\n Education : ' + d.education +
+                                    '\n Race : ' + d.race +
+                                    '\n final weight : ' + d.fnlwgt +
+                                    '\n Capital Gain : ' + d.capital_gain +
+                                    '\n Capital Loss : ' + d.capital_loss +
+                                    '\n Income : ' + d.income
+                                })
+            // X-axis
+            svg1.append('g')
+                .attr('class','axis')
+                .attr('transform', 'translate(0,' + h + ')')
+                .call(xAxis1)
+                .append('text') // X-axis Label
+                .attr('class','label')
+                .attr('y',-20)
+                .attr('x',w)
+                .attr('dy','.71em')
+                .style('text-anchor','end')
+                .text('Male Canadian Age')
+            // Y-axis
+            svg1.append('g')
+                .attr('class', 'axis')
+                .call(yAxis1)
+                .append('text') // y-axis Label
+                .attr('class','label')
+                .attr('transform','rotate(-90)')
+                .attr('x',0)
+                .attr('y',5)
+                .attr('dy','.71em')
+                .style('text-anchor','end')
+                .text('Education Level')
+            
+
+            var stringArr = [ ...educationLabelMap.keys()]
+            stringArr.sort((a,b)=>{
+                if(a==b)
+                    return 0;
+                return a<b ? -1 : 1;
+            })
+
+            var xScale2 = d3.scaleBand()
+                .domain(stringArr)
+                .rangeRound([0, w])
+                .padding(0.2)
+                
+            // X-axis            
+            var xAxis2 = d3.axisBottom(xScale2)
+                .ticks(25)
+                .tickFormat(function(d,i){
+                    return educationLabelMap.get(d)
+                })    
+
+                
+            // Y-axis
+            var yScale2 = d3.scaleLinear()
+                .domain([0,d3.max(filteredData, function(d) { return d.hours_per_week; })])
+                .range([h,0])
+            var yAxis2 = d3.axisLeft(yScale2)
+                .ticks(10)
+
+
+            var stackedData = d3.stack()
+                .keys(allAgeLabels)
+                (filteredData)
+                
+            console.log(allAgeLabels)
+            console.log(filteredData)
+            console.log(stackedData)
+
+            
+            var stackedBar =   svg.selectAll('g')
+                // Enter in the stack data = loop key per key = group per group
+                .data(stackedData)
+                .enter()
+                .append("g")
+                .selectAll("rect")
+                // enter a second time = loop subgroup per subgroup to add all rectangles
+                .data(function(d) { return d; })
+                .enter()
+                .append("rect")
+                .attr("x", function(d,i) { 
+                    return margin.left+xScale2(d.data.education_num); 
+                })
+                .attr("y", function(d,i) { return ((h  + margin.top + margin.bottom)+gap)+yScale2(d.data.hours_per_week); })
+                .attr("height", function(d,i) { return h - yScale2(d.data.hours_per_week); })
+                .attr("width",xScale2.bandwidth())
+                .attr("class", function(d,i) { return "pt" + i; })
+                .attr('stroke','black')
+                .attr('stroke-width',1)
+                .attr("fill", function(d,i) { return colorScale(i); })
+                .on('mouseover', function (d,i) {
+                    var sel = d3.select('rect.pt' + i)
+                        .transition()
+                        .duration(500)
+                        .attr('stroke-width',5)
+
+                    var sel2 = d3.select('circle.pt' + i)
+                        .transition()
+                        .duration(500)
+                        .attr('stroke-width',5)                    
+                })
+                .on('mouseout', function (d,i) {
+                    var sel = d3.select('rect.pt' + i)
+                    .transition()
+                    .duration(500)
+                    .attr('stroke-width',1)
+
+                    var sel2 = d3.select('circle.pt' + i)
+                        .transition()
+                        .duration(500)
+                        .attr('stroke-width',1)   
+                })
+                .append('title') // Tooltip
+                .text(function (d) { return 'Country : '+ d.data.native_country +
+                                '\n Occupation : '+ d.data.occupation +
+                                '\n Age : ' + d.data.age +
+                                '\n Workclass : ' + d.data.workclass +
+                                '\n Education : ' + d.data.education +
+                                '\n Race : ' + d.data.race +
+                                '\n final weight : ' + d.data.fnlwgt +
+                                '\n Capital Gain : ' + d.data.capital_gain +
+                                '\n Capital Loss : ' + d.data.capital_loss +
+                                '\n Hrs/Week : ' + d.data.hours_per_week +
+                                '\n Income : ' + d.data.income
+                            }) 
+            
+            // X-axis
+            svg2.append('g')
+                .attr('class','axis')
+                .attr('transform', 'translate(0,' + h + ')')
+                .call(xAxis2)
+                .append('text') // X-axis Label
+                .attr('class','label')
+                .attr('y',40)
+                .attr('x',w/2)                
+                .attr('dy','.71em')
+                .style('text-anchor','end')
+                .text('Education Level')
+            // Y-axis
+            svg2.append('g')
+                .attr('class', 'axis')
+                .call(yAxis2)
+                .append('text') // y-axis Label
+                .attr('class','label')
+                .attr('transform','rotate(-90)')
+                .attr('x',-h/2)
+                .attr('y',-65)
+                .attr('dy','.71em')
+                .style('text-anchor','end')
+                .text('Working Hours Per Week')
+
+                
+        });
+    </script>
+
+    <p>
+    From the plots we see that the highest working hours among single male canadians earning less than 50K CAD do not have education beyond college level; and Most Single Canadians 
+    earning less than 50K per year with highest level of beyond bachelors are between 25 to 30 years.         
+    </p>
+
+</div>
+
+<div id="Readme" class="tabcontent">
+    <span onclick="this.parentElement.style.display='none'" class="topright">&times</span>
+    <h3>ReadMe</h3>
+    <p>
+        <table>
+            <tr>
+                <th>Info</th>
+                <th></th>
+                <th>Details</th>
+            </tr>
+            <tr>
+                <td>Name</th>
+                <td>:</th>
+                <td>Arefin Shimon, Shaikh Shawon</th>
+            </tr>
+            <tr>
+                <td>Student ID</td>
+                <td>:</th>
+                <td>20942174</td>
+            </tr>
+            <tr>
+                <td>WatIAM ID</td>
+                <td>:</th>
+                <td>ssarefin</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>:</th>
+                <td>ssarefin@uwaterloo.ca</td>
+            </tr>
+            <tr>
+                <td>Website</td>
+                <td>:</th>
+                <td>www.shawonarefin.com</td>
+            </tr>
+        </table>
+    </p>
+    <p>
+        <h4>Solution Description</h4>
+        <p>
+            The visualization utilized scatterplot and stacked barcharts to highlight average working hours per week for Canadian male workers who are currently without spousal ties 
+            (never married, divorced, seperated) and earning less than 50K per year. The visualization utilized D3 V4 packages. 
+            <br>
+            <br>
+            One major issue on using different D3 packages is the methods in packages have changed in successive versions. For example, the methods in D3 v3 for utilizing stacked 
+            bars have changed in v4, and resources online are not consistent on these version changes.
+            <br>
+            <br>
+            For the scatterplot, the Y axis indicate level of education with higher numbers indicating higher level of education.
+            This was done by generating a map of education_num field with education level to replace education_num labels with their corresponding textual description counterpart.
+            In the scatterplot, we used circle radius to indicate the average working hours for the selected subset of the population. One major issue has been overlapping circles 
+            or circles that are completely overshadowing another circle. To resolve this issue, I had to increase the dimention of the image to 1000 X 1000 pixels so that the circle
+            overshadowing issue can be mitigated somewhat. 
+            <br>
+            <br>
+            For the barplot, I tried implementing a stacked barplot so that the overlapping circle issue in the scatterplot could be resolved. The stacked barplot head
+            X axis indicating education level, Y axis indicating work hours per week, and stacking based on age groups (Age 15, Age 16, ... and so on). One major roadblock was to stack the bars 
+            on top of each other with the given dataformat. d3.stack() function expects the stacked data in a row format where the data for each column is in a row (Refer to link 6 in disclaimer 
+            section). The given data csv file is not in that format, so preprocessing the data is necessary. 
+        </p>
+    </p>
+    <p>
+        <h4>Disclaimer</h4>
+        <p>
+            Used the following resources for inspiration. <br>
+
+            1) <a href="http://bl.ocks.org/kbroman/ded6a0784706a109c3a5">Linking two D3-based plots</a>                             <br>
+            2) <a href="https://d3-graph-gallery.com/graph/barplot_basic.html">Basic Barplot in D3</a>                              <br>
+            3) <a href="https://d3-graph-gallery.com/graph/barplot_stacked_basicWide.html">Basic stacked Barplot in D3</a>          <br>
+            4) <a href="https://riptutorial.com/d3-js/example/18426/loading-data-from-csv-files">Loading Data from CSV file</a>     <br>
+            5) <a href="https://d3-graph-gallery.com/graph/basic_datamanipulation.html">Data Filtering in CSV</a>     <br>
+            6) <a href="https://d3-graph-gallery.com/graph/barplot_stacked_highlight.html">Stacked Barplot with group highlighting</a> <br>
+        </p>
+    </p>
+</div>
+
+
+<script>
+    function openTab(evt, tabname){
+        var i, tabcontent, tablinks;
+
+        //Get all elements with class="tabcontent" and hide them
+        tabcontent = document.getElementsByClassName("tabcontent")
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+
+        //Get all elements with class="tablinks" and remove the class "active"
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        //Show the current tab, and add an "active" class to the button that opened the tab
+        document.getElementById(tabname).style.display = "block"
+        evt.currentTarget.className += " active"
+    }
+
+    document.getElementById("defaultOpen").click()
+</script>
+
+</body>
+</html>

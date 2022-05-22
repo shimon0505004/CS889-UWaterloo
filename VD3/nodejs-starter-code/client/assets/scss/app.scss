@@ -1,0 +1,35 @@
+@import 'colors';
+
+.canvas {
+  font: 10px sans-serif;
+  background-color: $bgcolor;
+  width: 3000px;
+  height: 3000px;
+}
+
+.dot {
+  fill: $color;
+  stroke: black;
+}
+
+.links line{
+  stroke: #aaa;
+}
+
+.nodes circle {
+  pointer-events: all;
+  stroke: none;
+  stroke-width: 40px;
+}
+
+text {
+  user-select: none;
+  
+  &::selection {
+    background: none;
+  }
+}
+
+#webpack-img {
+  width: 50px;
+}

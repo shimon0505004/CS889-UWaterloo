@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>VD2: Dimensionality reduction</title>
+</head>
+<body> 
+  <h1>CS889 - Spring 2022, University of Waterloo</h1>
+  <h2>VD2: Dimensionality reduction: Arefin Shimon, Shaikh Shawon (20942174)</h2>
+  
+  <div class="tab">
+    <button class="tablinks" onclick="openTab(event, 'Visualization')" id="defaultOpen">Visualization</button>
+    <button class="tablinks" onclick="openTab(event, 'Readme')">Readme</button>
+  </div>
+  
+  <div id="Visualization" class="tabcontent">
+    <span onclick="this.parentElement.style.display='none'" class="topright">&times</span>
+    <h3>VD2: Dimensionality reduction</h3>
+
+    <svg class="canvas1"></svg>
+    <svg class="canvas2"></svg>
+    <svg class="canvas3"></svg>
+  </div>
+
+  <div id="Readme" class="tabcontent">
+    <span onclick="this.parentElement.style.display='none'" class="topright">&times</span>
+    <h3>ReadMe</h3>
+    <p>
+        <table>
+            <tr>
+                <th>Info</th>
+                <th></th>
+                <th>Details</th>
+            </tr>
+            <tr>
+                <td>Name</th>
+                <td>:</th>
+                <td>Arefin Shimon, Shaikh Shawon</th>
+            </tr>
+            <tr>
+                <td>Student ID</td>
+                <td>:</th>
+                <td>20942174</td>
+            </tr>
+            <tr>
+                <td>WatIAM ID</td>
+                <td>:</th>
+                <td>ssarefin</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>:</th>
+                <td>ssarefin@uwaterloo.ca</td>
+            </tr>
+            <tr>
+                <td>Website</td>
+                <td>:</th>
+                <td>www.shawonarefin.com</td>
+            </tr>
+        </table>
+    </p>
+    <p>
+        <h4>Solution Description</h4>
+        <p>
+            The solution shows three scatterplots side by side to show corresponding points for PCA, MDS and t-SNE reduction. These
+            reductions convert the high-dimentional data points into 2D points. The dataset contains 10 categories of data (10 different labels).
+            Each label is colorcoded on the top of the corresponding scatterplot. The X and Y axis correspond to the 2D values generated
+            by the dimentionality reduction.
+            <br><br>
+            With the full dataset, the MDS and t-SNE reductions take too much running time. To resolve this issue, we limited the number
+            of iterations that MDS and t-SNE reductions can run. We limited t-SNE to 250 iterations and MDS reduction to 20 iterations for 
+            the data to be generated quickly.
+            <br><br>
+            From the visible data, we see that in PCA and TSNE reduction, the reduced data is forming labelwise clusters. In PCA reduction,
+            the clusters are distributed around the axis center. 
+            <br><br>
+            In PCA reduction, the clusters form a skewed, sheared elipse. From the plot it looks like the major axis for these elipsis clusters intersect
+            around a point (-1600, -460) approximately. The cluster boundaries are mostly well-defined for label class 1, 3, 0, 9, 8. 
+            Other cluster areas overlap with each other in a way that their boundaries superimpose.
+            <br><br>
+            In TSNE reduction the label clusters are markedly seperated in different axis.
+            Label 5, Label 9 and Label 7 do not go beyond Q3 quadrant and all other clusters are mostly situated in Q1 quadrant. Meaning, with this reduction 
+            it is possible to determine probable supergroup of the label [group (5,9,7) or group (1,2,3,4,6,8,0)] with reasonable accuracy once we have the reduced feature vectors.
+            <br><br>
+            In case of MDS reduction, we generated the data using a iteration of 1 and 20. In the first iteration, the projected data was randomly scattered around
+            the axes, but with the increase of iteration in the MDS reduction method, a cluster pattern started to emmerge. In the MDS scatterplot, we observed similar
+            label based ring shaped clusters centered around the center of the axis. We believe with increased iteration, the ring clusters would form better in a way that
+            boundaries between different label clusters could be clearly established, and data could be classified with reasonable accuracy given the reduced feature vectors.   
+        </p>
+    </p>
+    <p>
+        <h4>Disclaimer</h4>
+        <p>
+            Used the following resources for inspiration. <br>
+
+            1) <a href="http://bl.ocks.org/kbroman/ded6a0784706a109c3a5">Linking two D3-based plots</a>                             <br>
+            2) <a href="https://riptutorial.com/d3-js/example/18426/loading-data-from-csv-files">Loading Data from CSV file</a>     <br>
+            3) <a href="https://www.geeksforgeeks.org/d3-js-axisleft-function/">D3 axis functions</a> <br>
+            4) <a href="https://d3-graph-gallery.com/graph/scatter_basic.html/">D3 Scatterplot</a> <br>
+        </p>
+    </p>
+  </div>
+
+  <script>
+    function openTab(evt, tabname){
+        var i, tabcontent, tablinks;
+
+        //Get all elements with class="tabcontent" and hide them
+        tabcontent = document.getElementsByClassName("tabcontent")
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+
+        //Get all elements with class="tablinks" and remove the class "active"
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        //Show the current tab, and add an "active" class to the button that opened the tab
+        document.getElementById(tabname).style.display = "block"
+        evt.currentTarget.className += " active"
+    }
+
+    document.getElementById("defaultOpen").click()
+  </script>
+
+</body>
+</html>
